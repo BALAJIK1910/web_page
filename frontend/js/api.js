@@ -3,8 +3,15 @@
  * All fetch calls go through here. Update API_BASE if your backend runs elsewhere.
  */
 
-// TODO: change this URL if your backend runs on a different host/port
-const API_BASE = 'http://localhost:8086/api';
+// Auto-detect local development vs deployed production environment
+const IS_LOCAL = window.location.hostname === 'localhost' || 
+                 window.location.hostname === '127.0.0.1' ||
+                 window.location.protocol === 'file:';
+
+// TODO: Replace this with your actual deployed backend URL from Render (e.g. 'https://my-ecommerce-api.onrender.com/api')
+const PRODUCTION_API_URL = 'https://YOUR-BACKEND-NAME.onrender.com/api';
+
+const API_BASE = IS_LOCAL ? 'http://localhost:8080/api' : PRODUCTION_API_URL;
 
 // ================================================================
 // Generic helpers

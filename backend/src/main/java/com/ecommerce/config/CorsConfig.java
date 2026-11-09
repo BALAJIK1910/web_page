@@ -20,14 +20,9 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // TODO: update this list when you deploy the frontend to a real domain
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost:8080",
-                "null"  // allows file:// origin during local development
-        ));
+        // Using allowedOriginPatterns("*") allows credentials while accepting requests
+        // from local dev (localhost, file://) and any deployed frontend domain (Vercel, Netlify, Render).
+        config.setAllowedOriginPatterns(List.of("*"));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

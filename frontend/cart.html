@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Cart — ShopEase</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a href="index.html" class="logo">Shop<span>Ease</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li>
+                    <a href="cart.html" class="cart-link active">
+                        🛒 Cart
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>My Cart</h1>
+        </div>
+    </div>
+
+    <main class="section">
+        <div class="container">
+            <!-- Loading -->
+            <div id="cartLoading" class="cart-loading">
+                <div class="spinner"></div>
+                <p>Loading your cart...</p>
+            </div>
+
+            <!-- Error -->
+            <div class="error-state hidden" id="cartError">
+                <p>⚠️ Failed to load cart. Make sure the backend API is running.</p>
+                <button class="btn btn-outline" id="retryCartBtn">Retry</button>
+            </div>
+
+            <!-- Empty cart -->
+            <div class="empty-state hidden" id="emptyCart">
+                <span class="empty-icon">🛒</span>
+                <h3>Your cart is empty</h3>
+                <p>Add some products and they'll appear here.</p>
+                <a href="products.html" class="btn btn-primary">Start Shopping</a>
+            </div>
+
+            <!-- Cart with items -->
+            <div class="cart-layout hidden" id="cartLayout">
+                <div class="cart-items" id="cartItems"></div>
+                <aside class="cart-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-row">
+                        <span>Items (<span id="summaryItemCount">0</span>)</span>
+                        <span id="summarySubtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span id="summaryShipping">Free</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span id="summaryTotal">$0.00</span>
+                    </div>
+
+                    <!-- Checkout form -->
+                    <form id="checkoutForm" class="checkout-form">
+                        <h4>Customer Details</h4>
+                        <input type="text" name="customerName" id="customerName" placeholder="Full Name" class="input" required />
+                        <button type="submit" class="btn btn-primary btn-block" id="checkoutBtn">
+                            Place Order 🎉
+                        </button>
+                    </form>
+
+                    <!-- Order success -->
+                    <div class="order-success hidden" id="orderSuccess">
+                        <div class="success-icon">✅</div>
+                        <h3>Order Placed!</h3>
+                        <p id="orderSuccessMsg"></p>
+                        <a href="products.html" class="btn btn-primary">Continue Shopping</a>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 ShopEase. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="toast hidden" id="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/cart.js"></script>
+</body>
+</html>

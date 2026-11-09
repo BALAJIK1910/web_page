@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Detail — ShopEase</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a href="index.html" class="logo">Shop<span>Ease</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html" class="active">Products</a></li>
+                <li>
+                    <a href="cart.html" class="cart-link">
+                        🛒 Cart
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+        </div>
+    </nav>
+
+    <main class="section">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> /
+                <a href="products.html">Products</a> /
+                <span id="breadcrumbName">Loading...</span>
+            </nav>
+
+            <!-- Loading skeleton -->
+            <div class="product-detail skeleton-detail" id="loadingDetail">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line short"></div>
+                </div>
+            </div>
+
+            <!-- Product detail -->
+            <div class="product-detail hidden" id="productDetail">
+                <div class="product-image-wrap">
+                    <img id="detailImage" src="" alt="" class="product-detail-img" />
+                </div>
+                <div class="product-info">
+                    <span class="category-badge" id="detailCategory"></span>
+                    <h1 id="detailName"></h1>
+                    <div class="product-price-large" id="detailPrice"></div>
+                    <p class="product-description" id="detailDescription"></p>
+                    <div class="stock-info" id="detailStock"></div>
+                    <div class="quantity-selector">
+                        <label for="quantityInput">Qty:</label>
+                        <button class="qty-btn" id="qtyMinus">−</button>
+                        <input type="number" id="quantityInput" value="1" min="1" max="999" class="qty-input" />
+                        <button class="qty-btn" id="qtyPlus">+</button>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary btn-lg" id="addToCartBtn">Add to Cart 🛒</button>
+                        <a href="products.html" class="btn btn-outline btn-lg">← Back</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div class="error-state hidden" id="errorState">
+                <p>⚠️ Product not found or failed to load.</p>
+                <a href="products.html" class="btn btn-outline">← Back to Products</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 ShopEase. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="toast hidden" id="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/products.js"></script>
+</body>
+</html>

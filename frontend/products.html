@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products — ShopEase</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a href="index.html" class="logo">Shop<span>Ease</span></a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html" class="active">Products</a></li>
+                <li>
+                    <a href="cart.html" class="cart-link">
+                        🛒 Cart
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </a>
+                </li>
+            </ul>
+            <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+        </div>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="container">
+            <h1>All Products</h1>
+            <p>Browse our collection</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="section">
+        <div class="container">
+            <!-- Search & Filters -->
+            <div class="filters-bar">
+                <div class="search-wrapper">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="input"
+                        placeholder="Search products..."
+                        aria-label="Search products"
+                    />
+                    <button class="btn btn-primary" id="searchBtn">Search</button>
+                </div>
+                <div class="category-filters" id="categoryFilters">
+                    <button class="filter-chip active" data-category="">All</button>
+                    <!-- more chips added dynamically -->
+                </div>
+            </div>
+
+            <!-- Results info -->
+            <div class="results-info" id="resultsInfo"></div>
+
+            <!-- Loading -->
+            <div class="products-grid" id="loadingGrid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+
+            <!-- Products grid -->
+            <div class="products-grid hidden" id="productsGrid"></div>
+
+            <!-- Error -->
+            <div class="error-state hidden" id="errorState">
+                <p>⚠️ Could not load products. Make sure the backend API is running.</p>
+                <button class="btn btn-outline" id="retryBtn">Retry</button>
+            </div>
+
+            <!-- Empty -->
+            <div class="empty-state hidden" id="emptyState">
+                <span class="empty-icon">🔍</span>
+                <h3>No products found</h3>
+                <p>Try a different search or category filter.</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 ShopEase. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="toast hidden" id="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/products.js"></script>
+</body>
+</html>

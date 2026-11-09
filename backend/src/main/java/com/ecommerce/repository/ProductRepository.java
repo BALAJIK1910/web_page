@@ -13,15 +13,17 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    Page<Product> findByCategory(String category, Pageable pageable);
+    // Filter only by category
+    Page<Product> findByCategoryIgnoreCase(String category, Pageable pageable);
 
-    @Query("""
-            SELECT p FROM Product p
-            WHERE (cast(:category as string) IS NULL OR p.category = cast(:category as string))
-              AND (cast(:search as string) IS NULL
-                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', cast(:search as string), '%'))
-                   OR LOWER(p.description) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))
-            """)
+    // Filter only by search keyword (name or description)
+    Page<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+            String name, String description, Pageable pageable);
+
+    // Filter by both category and search keyword
+    @Query("SELECT p FROM Product p WHERE LOWER(p.category) = LOWER(:category) AND " +
+           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Product> findByCategoryAndSearch(
             @Param("category") String category,
             @Param("search") String search,

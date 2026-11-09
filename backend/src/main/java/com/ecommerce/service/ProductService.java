@@ -27,8 +27,20 @@ public class ProductService {
         log.debug("Fetching products - category: {}, search: {}", category, search);
         String cat = StringUtils.hasText(category) ? category.trim() : null;
         String srch = StringUtils.hasText(search) ? search.trim() : null;
-        return productRepository.findByCategoryAndSearch(cat, srch, pageable)
-                .map(this::toDTO);
+
+        Page<Product> page;
+        if (cat != null && srch != null) {
+            page = productRepository.findByCategoryAndSearch(cat, srch, pageable);
+        } else if (cat != null) {
+            page = productRepository.findByCategoryIgnoreCase(cat, pageable);
+        } else if (srch != null) {
+            page = productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(srch, srch,
+                    pageable);
+        } else {
+            page = productRepository.findAll(pageable);
+        }
+
+        return page.map(this::toDTO);
     }
 
     public ProductDTO getProductById(Long id) {

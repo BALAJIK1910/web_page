@@ -7,14 +7,19 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+
 @Slf4j
 @SpringBootApplication
 public class EcommerceApplication {
 
     private final Environment environment;
+    private final DataSource dataSource;
 
-    public EcommerceApplication(Environment environment) {
+    public EcommerceApplication(Environment environment, DataSource dataSource) {
         this.environment = environment;
+        this.dataSource = dataSource;
     }
 
     public static void main(String[] args) {
@@ -26,22 +31,19 @@ public class EcommerceApplication {
         String dbUrl = environment.getProperty("spring.datasource.url", "");
         String dbUser = environment.getProperty("spring.datasource.username", "");
 
-        if (dbUrl.isBlank() || dbUser.isBlank()) {
-            log.warn("=========================================================");
-            log.warn("  WARNING: Supabase credentials are NOT configured.");
-            log.warn("  The application started but database operations will fail.");
-            log.warn("  Please set the following environment variables:");
-            log.warn("    SUPABASE_DB_URL      - PostgreSQL JDBC URL");
-            log.warn("    SUPABASE_DB_USER     - Database username");
-            log.warn("    SUPABASE_DB_PASSWORD - Database password");
-            log.warn("  See .env.example for reference.");
-            log.warn("=========================================================");
-        } else {
+        log.info("=========================================================");
+        log.info("  E-Commerce API started!");
+        log.info("  API Base: http://localhost:{}/api", environment.getProperty("server.port", "8080"));
+        log.info("  Testing database connection to: {}", dbUrl);
+
+        try (Connection conn = dataSource.getConnection()) {
+            log.info("  >> Database connection SUCCESSFUL! (Catalog: {})", conn.getCatalog());
             log.info("=========================================================");
-            log.info("  E-Commerce API started successfully!");
-            log.info("  Database: {}", dbUrl);
-            log.info("  API Base: http://localhost:{}/api", environment.getProperty("server.port", "8080"));
-            log.info("=========================================================");
+        } catch (Exception ex) {
+            log.error("  >> DATABASE CONNECTION FAILED!");
+            log.error("  >> Reason: {}", ex.getMessage());
+            log.error("  Please verify SUPABASE_DB_URL, SUPABASE_DB_USER, and SUPABASE_DB_PASSWORD.");
+            log.error("=========================================================");
         }
     }
 }

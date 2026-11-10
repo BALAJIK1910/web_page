@@ -4,6 +4,7 @@ import com.ecommerce.dto.OrderDTO;
 import com.ecommerce.dto.OrderItemDTO;
 import com.ecommerce.dto.OrderRequest;
 import com.ecommerce.entity.*;
+import com.ecommerce.entity.User;
 import com.ecommerce.exception.BadRequestException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.CartItemRepository;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,9 +42,13 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
+        String customerName = (request != null && StringUtils.hasText(request.getCustomerName()))
+                ? request.getCustomerName().trim()
+                : user.getFullName();
+
         Order order = Order.builder()
                 .user(user)
-                .customerName(user.getFullName())
+                .customerName(customerName)
                 .status("PENDING")
                 .items(new ArrayList<>())
                 .build();

@@ -4,12 +4,12 @@
  */
 
 // Auto-detect local development vs deployed production environment
-const IS_LOCAL = window.location.hostname === 'localhost' || 
-                 window.location.hostname === '127.0.0.1' ||
-                 window.location.protocol === 'file:';
+const IS_LOCAL = window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.protocol === 'file:';
 
 // TODO: Replace this with your actual deployed backend URL from Render (e.g. 'https://my-ecommerce-api.onrender.com/api')
-const PRODUCTION_API_URL = 'https://YOUR-BACKEND-NAME.onrender.com/api';
+const PRODUCTION_API_URL = 'https://ecommerce-backend-bu38.onrender.com';
 
 const API_BASE = IS_LOCAL ? 'http://localhost:8080/api' : PRODUCTION_API_URL;
 

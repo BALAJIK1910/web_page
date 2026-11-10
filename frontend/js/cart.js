@@ -185,34 +185,28 @@ function showCartLayout(cart) {
 
 async function handleCheckout(e) {
     e.preventDefault();
-    const form = document.getElementById('checkoutForm');
     const btn = document.getElementById('checkoutBtn');
-    if (!form || !btn) return;
-
-    const formData = new FormData(form);
-    const customerName = (formData.get('customerName') || formData.get('name'))?.trim();
-
-    if (!customerName) {
-        showToast('Please enter your name', 'error');
-        return;
-    }
+    if (!btn) return;
 
     btn.disabled = true;
     btn.textContent = 'Placing order…';
 
     try {
-        const order = await OrdersAPI.checkout({ customerName });
+        const order = await OrdersAPI.checkout();
+        const user = getCurrentUser();
+        const displayName = order?.customerName || user?.fullName || 'you';
 
         // Show success
-        form.classList.add('hidden');
+        const form = document.getElementById('checkoutForm');
+        if (form) form.classList.add('hidden');
         const successEl = document.getElementById('orderSuccess');
         const msgEl = document.getElementById('orderSuccessMsg');
 
         if (successEl) successEl.classList.remove('hidden');
         if (msgEl) {
             msgEl.textContent = order
-                ? `Order #${order.id || ''} confirmed for ${order.customerName || customerName}! Total: ${formatPrice(order.totalAmount)}.`
-                : `Order confirmed for ${customerName}!`;
+                ? `Order #${order.id || ''} confirmed for ${displayName}! Total: ${formatPrice(order.totalAmount)}.`
+                : `Order confirmed for ${displayName}!`;
         }
 
         // Clear cart display
@@ -274,6 +268,9 @@ async function loadCart() {
 // ================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Redirect to login if not authenticated
+    if (!requireAuth()) return;
+
     initHamburger();
 
     const checkoutForm = document.getElementById('checkoutForm');

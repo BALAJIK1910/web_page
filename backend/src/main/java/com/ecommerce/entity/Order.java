@@ -1,5 +1,6 @@
 package com.ecommerce.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,12 +11,12 @@ import java.util.List;
 
 /**
  * Matches the 'orders' table in Supabase:
- * - id: int8 (PK)
- * - session_id: varchar
- * - customer_name: varchar
- * - total_amount: numeric
- * - status: varchar
- * - created_at: timestamptz
+ * - id: bigint identity PK
+ * - user_id: bigint NULLABLE -> FK users(id) ON DELETE SET NULL
+ * - customer_name: varchar(255)
+ * - total_amount: numeric(10,2) not null
+ * - status: varchar(30) not null default 'PENDING'
+ * - created_at: timestamptz not null default now()
  */
 @Entity
 @Table(name = "orders")
@@ -31,8 +32,10 @@ public class Order {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "session_id", nullable = false)
-    private String sessionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @Column(name = "customer_name")
     private String customerName;
@@ -41,7 +44,8 @@ public class Order {
     private BigDecimal totalAmount;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Builder.Default
+    private String status = "PENDING";
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -1,6 +1,6 @@
 /**
  * api.js — Central API client for ShopEase.
- * All fetch calls go through here. Update API_BASE if your backend runs elsewhere.
+ * All fetch calls go through here. JWT is sent as Authorization: Bearer <token>.
  */
 
 // Auto-detect local development vs deployed production environment
@@ -29,19 +29,28 @@ const API_BASE = getApiBaseUrl();
 
 async function request(path, options = {}) {
     const url = `${API_BASE}${path}`;
-    const defaults = {
-        credentials: 'include', // send session cookie
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {}),
-        },
+    const token = localStorage.getItem('shopease_token');
+
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
     };
-    const res = await fetch(url, { ...defaults, ...options });
+
+    const res = await fetch(url, { ...options, headers });
     let json = null;
     try {
         json = await res.json();
     } catch {
         // Fallback if response is not JSON (e.g., HTML error from gateway)
+    }
+
+    // If 401, the token is invalid/expired — redirect to login
+    if (res.status === 401) {
+        localStorage.removeItem('shopease_token');
+        localStorage.removeItem('shopease_user');
+        window.location.href = 'login.html';
+        return;
     }
 
     if (!res.ok) {
@@ -50,6 +59,28 @@ async function request(path, options = {}) {
     }
     return json ? json.data : null;
 }
+
+// ================================================================
+// Auth API
+// ================================================================
+
+const AuthAPI = {
+    /** POST /api/auth/login */
+    async login({ email, password }) {
+        return request('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+        });
+    },
+
+    /** POST /api/auth/register */
+    async register({ fullName, email, password }) {
+        return request('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ fullName, email, password }),
+        });
+    },
+};
 
 // ================================================================
 // Products API
@@ -107,7 +138,7 @@ const ProductsAPI = {
 // ================================================================
 
 const CartAPI = {
-    /** Get current session cart */
+    /** Get current user's cart */
     async getCart() {
         return request('/cart');
     },
@@ -120,11 +151,11 @@ const CartAPI = {
         });
     },
 
-    /** Update quantity of a cart item */
+    /** Update quantity of a cart item (sends only quantity) */
     async updateCartItem(itemId, quantity) {
         return request(`/cart/${itemId}`, {
             method: 'PUT',
-            body: JSON.stringify({ productId: 0, quantity }), // productId ignored on update
+            body: JSON.stringify({ quantity }),
         });
     },
 
@@ -139,11 +170,11 @@ const CartAPI = {
 // ================================================================
 
 const OrdersAPI = {
-    /** Place order (checkout) */
-    async checkout({ customerName }) {
+    /** Place order (checkout) — customerName comes from JWT on the backend */
+    async checkout() {
         return request('/orders', {
             method: 'POST',
-            body: JSON.stringify({ customerName }),
+            body: JSON.stringify({}),
         });
     },
 };
@@ -174,11 +205,17 @@ function showToast(message, type = '') {
 
 /** Update the cart badge count in the navbar */
 async function updateCartBadge() {
+    const token = localStorage.getItem('shopease_token');
+    if (!token) {
+        const badge = document.getElementById('cartBadge');
+        if (badge) badge.textContent = '0';
+        return;
+    }
     try {
         const cart = await CartAPI.getCart();
         const badge = document.getElementById('cartBadge');
         if (badge) {
-            badge.textContent = cart.totalItems || 0;
+            badge.textContent = cart ? (cart.totalItems || 0) : 0;
         }
     } catch {
         // silently fail — badge just stays at 0

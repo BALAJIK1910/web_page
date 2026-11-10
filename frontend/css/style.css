@@ -844,3 +844,21 @@ input, textarea, select { font-family: inherit; }
     .filters-bar { flex-direction: column; }
     .search-wrapper { width: 100%; }
 }
+
+
+/* ── Auth navbar styles ── */
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+.nav-user-name {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+.nav-login-link {
+    font-weight: 600;
+    color: var(--primary) !important;
+}

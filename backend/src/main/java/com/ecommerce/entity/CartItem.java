@@ -1,17 +1,15 @@
 package com.ecommerce.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.OffsetDateTime;
 
 /**
- * Matches the 'cart_items' table in Supabase:
- * - id: int8 (PK)
- * - session_id: varchar
- * - product_id: int8 (FK -> products.id)
- * - quantity: int4
- * - created_at: timestamptz
+ * Matches the 'cart_items' table in Supabase.
+ * session_id has been removed; user_id FK to users(id) replaces it.
+ * UNIQUE(user_id, product_id) is enforced in the DB.
  */
 @Entity
 @Table(name = "cart_items")
@@ -27,8 +25,10 @@ public class CartItem {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "session_id", nullable = false)
-    private String sessionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
 
     @Column(name = "product_id", nullable = false)
     private Long productId;

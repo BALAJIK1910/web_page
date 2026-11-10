@@ -5,10 +5,12 @@ import com.ecommerce.dto.CartItemRequest;
 import com.ecommerce.dto.CartResponse;
 import com.ecommerce.entity.CartItem;
 import com.ecommerce.entity.Product;
+import com.ecommerce.entity.User;
 import com.ecommerce.exception.BadRequestException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,9 +27,10 @@ public class CartService {
 
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
-    public CartResponse getCart(String sessionId) {
-        List<CartItem> items = cartItemRepository.findBySessionId(sessionId);
+    public CartResponse getCart(Long userId) {
+        List<CartItem> items = cartItemRepository.findByUser_Id(userId);
         List<CartItemDTO> dtos = items.stream().map(item -> {
             Product product = productRepository.findById(item.getProductId()).orElse(null);
             return toDTO(item, product);
@@ -37,9 +40,7 @@ public class CartService {
                 .map(CartItemDTO::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        int totalItems = dtos.stream()
-                .mapToInt(CartItemDTO::getQuantity)
-                .sum();
+        int totalItems = dtos.stream().mapToInt(CartItemDTO::getQuantity).sum();
 
         return CartResponse.builder()
                 .items(dtos)
@@ -49,7 +50,7 @@ public class CartService {
     }
 
     @Transactional
-    public CartItemDTO addToCart(String sessionId, CartItemRequest request) {
+    public CartItemDTO addToCart(Long userId, CartItemRequest request) {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", request.getProductId()));
 
@@ -57,9 +58,12 @@ public class CartService {
             throw new BadRequestException("Not enough stock. Available: " + product.getStock());
         }
 
-        // If item already in cart, update quantity
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        // If the product is already in the cart, increase quantity (enforced by UNIQUE constraint)
         CartItem cartItem = cartItemRepository
-                .findBySessionIdAndProductId(sessionId, request.getProductId())
+                .findByUser_IdAndProductId(userId, request.getProductId())
                 .map(existing -> {
                     int newQty = existing.getQuantity() + request.getQuantity();
                     if (newQty > product.getStock()) {
@@ -69,44 +73,44 @@ public class CartService {
                     return existing;
                 })
                 .orElse(CartItem.builder()
-                        .sessionId(sessionId)
+                        .user(user)
                         .productId(request.getProductId())
                         .quantity(request.getQuantity())
                         .build());
 
         CartItem saved = cartItemRepository.save(cartItem);
-        log.info("Added to cart: productId={}, qty={}, session={}", request.getProductId(), request.getQuantity(), sessionId);
+        log.info("Added to cart: productId={}, qty={}, userId={}", request.getProductId(), request.getQuantity(), userId);
         return toDTO(saved, product);
     }
 
     @Transactional
-    public CartItemDTO updateCartItem(String sessionId, Long itemId, CartItemRequest request) {
+    public CartItemDTO updateCartItem(Long userId, Long itemId, Integer quantity) {
         CartItem item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", itemId));
 
-        if (!item.getSessionId().equals(sessionId)) {
-            throw new BadRequestException("Cart item does not belong to this session");
+        if (!item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Cart item does not belong to this user");
         }
 
         Product product = productRepository.findById(item.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", item.getProductId()));
 
-        if (request.getQuantity() > product.getStock()) {
+        if (quantity > product.getStock()) {
             throw new BadRequestException("Not enough stock. Available: " + product.getStock());
         }
 
-        item.setQuantity(request.getQuantity());
+        item.setQuantity(quantity);
         CartItem saved = cartItemRepository.save(item);
         return toDTO(saved, product);
     }
 
     @Transactional
-    public void removeFromCart(String sessionId, Long itemId) {
+    public void removeFromCart(Long userId, Long itemId) {
         CartItem item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", itemId));
 
-        if (!item.getSessionId().equals(sessionId)) {
-            throw new BadRequestException("Cart item does not belong to this session");
+        if (!item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Cart item does not belong to this user");
         }
 
         cartItemRepository.delete(item);
@@ -114,8 +118,8 @@ public class CartService {
     }
 
     @Transactional
-    public void clearCart(String sessionId) {
-        cartItemRepository.deleteBySessionId(sessionId);
+    public void clearCart(Long userId) {
+        cartItemRepository.deleteByUser_Id(userId);
     }
 
     private CartItemDTO toDTO(CartItem item, Product product) {

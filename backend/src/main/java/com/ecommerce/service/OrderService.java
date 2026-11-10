@@ -3,15 +3,13 @@ package com.ecommerce.service;
 import com.ecommerce.dto.OrderDTO;
 import com.ecommerce.dto.OrderItemDTO;
 import com.ecommerce.dto.OrderRequest;
-import com.ecommerce.entity.CartItem;
-import com.ecommerce.entity.Order;
-import com.ecommerce.entity.OrderItem;
-import com.ecommerce.entity.Product;
+import com.ecommerce.entity.*;
 import com.ecommerce.exception.BadRequestException;
 import com.ecommerce.exception.ResourceNotFoundException;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,17 +28,21 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public OrderDTO checkout(String sessionId, OrderRequest request) {
-        List<CartItem> cartItems = cartItemRepository.findBySessionId(sessionId);
+    public OrderDTO checkout(Long userId, OrderRequest request) {
+        List<CartItem> cartItems = cartItemRepository.findByUser_Id(userId);
         if (cartItems.isEmpty()) {
             throw new BadRequestException("Cart is empty. Add items before checking out.");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
         Order order = Order.builder()
-                .sessionId(sessionId)
-                .customerName(request.getCustomerName())
+                .user(user)
+                .customerName(user.getFullName())
                 .status("PENDING")
                 .items(new ArrayList<>())
                 .build();
@@ -58,7 +60,6 @@ public class OrderService {
             BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             total = total.add(subtotal);
 
-            // Matches Supabase order_items table: id, order_id, product_id, quantity, unit_price
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .productId(product.getId())
@@ -77,7 +78,7 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // Clear cart after checkout
-        cartItemRepository.deleteBySessionId(sessionId);
+        cartItemRepository.deleteByUser_Id(userId);
         log.info("Order created id={}, customer={}, total={}", savedOrder.getId(), savedOrder.getCustomerName(), total);
 
         return toDTO(savedOrder);
@@ -100,7 +101,6 @@ public class OrderService {
 
         return OrderDTO.builder()
                 .id(order.getId())
-                .sessionId(order.getSessionId())
                 .customerName(order.getCustomerName())
                 .status(order.getStatus())
                 .totalAmount(order.getTotalAmount())

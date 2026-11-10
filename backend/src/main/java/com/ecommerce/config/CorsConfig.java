@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * CORS configuration — allows the vanilla JS frontend to call the API.
- * Update allowedOrigins if you serve the frontend from a different host/port.
+ * JWT is stateless so credentials=false; Authorization header is exposed.
  */
 @Configuration
 public class CorsConfig {
@@ -20,13 +20,14 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Using allowedOriginPatterns("*") allows credentials while accepting requests
-        // from local dev (localhost, file://) and any deployed frontend domain (Vercel, Netlify, Render).
+        // Allow any origin (works for Vercel, local dev, file://)
         config.setAllowedOriginPatterns(List.of("*"));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);  // needed for session cookies
+        config.setExposedHeaders(List.of("Authorization"));
+        // With JWT we don't use cookies — set credentials false for broader compatibility
+        config.setAllowCredentials(false);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

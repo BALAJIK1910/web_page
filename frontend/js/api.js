@@ -8,10 +8,20 @@ const IS_LOCAL = window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
     window.location.protocol === 'file:';
 
-// TODO: Replace this with your actual deployed backend URL from Render (e.g. 'https://my-ecommerce-api.onrender.com/api')
-const PRODUCTION_API_URL = 'https://ecommerce-backend-bu38.onrender.com';
+// Your deployed backend URL from Render
+const PRODUCTION_API_URL = 'https://ecommerce-backend-bu38.onrender.com/api';
 
-const API_BASE = IS_LOCAL ? 'http://localhost:8080/api' : PRODUCTION_API_URL;
+// Ensures the API base always correctly points to '/api' without double or missing slashes
+function getApiBaseUrl() {
+    if (IS_LOCAL) return 'http://localhost:8080/api';
+    let base = PRODUCTION_API_URL.trim().replace(/\/+$/, '');
+    if (!base.endsWith('/api')) {
+        base += '/api';
+    }
+    return base;
+}
+
+const API_BASE = getApiBaseUrl();
 
 // ================================================================
 // Generic helpers
@@ -27,12 +37,18 @@ async function request(path, options = {}) {
         },
     };
     const res = await fetch(url, { ...defaults, ...options });
-    const json = await res.json();
+    let json = null;
+    try {
+        json = await res.json();
+    } catch {
+        // Fallback if response is not JSON (e.g., HTML error from gateway)
+    }
+
     if (!res.ok) {
-        const msg = json.message || `HTTP ${res.status}: ${res.statusText}`;
+        const msg = json?.message || `HTTP ${res.status}: ${res.statusText || 'Server error'}`;
         throw new Error(msg);
     }
-    return json.data;
+    return json ? json.data : null;
 }
 
 // ================================================================

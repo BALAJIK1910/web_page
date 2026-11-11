@@ -24,6 +24,24 @@ function getApiBaseUrl() {
 const API_BASE = getApiBaseUrl();
 
 // ================================================================
+// Instant Backend Warm-up (Render Free-Tier Wake-up)
+// ================================================================
+// Triggers immediately when this script loads in the browser.
+// Calls the lightweight /api/health endpoint to wake up Render without querying the database.
+(function warmupBackend() {
+    fetch(`${API_BASE}/health`, { method: 'GET', keepalive: true })
+        .then(res => res.json())
+        .then(data => {
+            if (data?.status === 'UP') {
+                console.log('⚡ Render backend is awake & healthy');
+            }
+        })
+        .catch(() => {
+            console.log('⏳ Render backend wake-up ping sent...');
+        });
+})();
+
+// ================================================================
 // Generic helpers
 // ================================================================
 
@@ -37,7 +55,17 @@ async function request(path, options = {}) {
         ...(options.headers || {}),
     };
 
-    const res = await fetch(url, { ...options, headers });
+    // If request takes > 2.5s (likely Render cold start), show temporary wake-up notice
+    let warmupTimer = setTimeout(() => {
+        showToast('⏳ Waking up free-tier server, please hold on...', 'info');
+    }, 2500);
+
+    let res;
+    try {
+        res = await fetch(url, { ...options, headers });
+    } finally {
+        clearTimeout(warmupTimer);
+    }
     let json = null;
     try {
         json = await res.json();
@@ -59,6 +87,17 @@ async function request(path, options = {}) {
     }
     return json ? json.data : null;
 }
+
+// ================================================================
+// Health API
+// ================================================================
+
+const HealthAPI = {
+    /** GET /api/health — fast check without DB query */
+    async checkHealth() {
+        return request('/health');
+    },
+};
 
 // ================================================================
 // Auth API

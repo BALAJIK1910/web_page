@@ -33,6 +33,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Public: health check endpoint (for warming up backend)
+                .requestMatchers("/api/health").permitAll()
                 // Public: auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 // Public: read products
